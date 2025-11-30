@@ -37,3 +37,23 @@ Thumbs.db
 coverage/
 .coverage
 
+# Docker volumes and data
+infrastructure/postgres_data/
+infrastructure/redis_data/
+infrastructure/dify_storage/
+infrastructure/n8n_data/
+infrastructure/n8n-local-files/
+
+# n8n local files
+n8n-local-files/
+
+# Obsidian vault (mounted externally)
+obsidian-vault/
+
+# Dify storage
+storage/
+
+# Local development
+*.local
+.env.development
+.env.production

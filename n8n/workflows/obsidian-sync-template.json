@@ -1,0 +1,147 @@
+{
+  "name": "Obsidian to Supabase Sync",
+  "nodes": [
+    {
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "hour": 0,
+              "minute": 0
+            }
+          ]
+        }
+      },
+      "id": "trigger-node",
+      "name": "Daily Sync Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "notes": "Triggers daily sync. Adjust schedule as needed."
+    },
+    {
+      "parameters": {
+        "mode": "list",
+        "operation": "list",
+        "path": "/obsidian-vault",
+        "recursive": true,
+        "filter": "*.md"
+      },
+      "id": "list-files",
+      "name": "List Markdown Files",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [450, 300],
+      "notes": "Lists all markdown files in the Obsidian vault"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Process each markdown file\nconst items = [];\n\nfor (const item of $input.all()) {\n  const filePath = item.json.path;\n  const fileName = filePath.split('/').pop().replace('.md', '');\n  const content = item.json.content || '';\n  \n  // Extract frontmatter if present\n  let metadata = {};\n  let mainContent = content;\n  \n  const frontmatterMatch = content.match(/^---\\n([\\s\\S]*?)\\n---\\n([\\s\\S]*)$/);\n  if (frontmatterMatch) {\n    // Parse YAML frontmatter (simplified)\n    const yamlContent = frontmatterMatch[1];\n    mainContent = frontmatterMatch[2];\n    \n    yamlContent.split('\\n').forEach(line => {\n      const [key, ...valueParts] = line.split(':');\n      if (key && valueParts.length) {\n        metadata[key.trim()] = valueParts.join(':').trim();\n      }\n    });\n  }\n  \n  items.push({\n    json: {\n      id: fileName,\n      title: metadata.title || fileName,\n      content: mainContent,\n      tags: metadata.tags ? metadata.tags.split(',').map(t => t.trim()) : [],\n      created_at: metadata.created || new Date().toISOString(),\n      updated_at: new Date().toISOString(),\n      file_path: filePath,\n      metadata: metadata\n    }\n  });\n}\n\nreturn items;"
+      },
+      "id": "process-files",
+      "name": "Process Markdown",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 300],
+      "notes": "Extracts content and metadata from markdown files"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/documents",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $env.SUPABASE_API_KEY }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.SUPABASE_API_KEY }}"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "id",
+              "value": "={{ $json.id }}"
+            },
+            {
+              "name": "title",
+              "value": "={{ $json.title }}"
+            },
+            {
+              "name": "content",
+              "value": "={{ $json.content }}"
+            },
+            {
+              "name": "metadata",
+              "value": "={{ JSON.stringify($json.metadata) }}"
+            }
+          ]
+        }
+      },
+      "id": "upsert-supabase",
+      "name": "Upsert to Supabase",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [850, 300],
+      "notes": "Upserts document to Supabase. Configure your Supabase credentials."
+    }
+  ],
+  "connections": {
+    "Daily Sync Trigger": {
+      "main": [
+        [
+          {
+            "node": "List Markdown Files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List Markdown Files": {
+      "main": [
+        [
+          {
+            "node": "Process Markdown",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Markdown": {
+      "main": [
+        [
+          {
+            "node": "Upsert to Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateId": "rag-pepper-obsidian-sync"
+  },
+  "pinData": {},
+  "versionId": "1",
+  "triggerCount": 0,
+  "tags": ["obsidian", "sync", "rag-pepper"]
+}

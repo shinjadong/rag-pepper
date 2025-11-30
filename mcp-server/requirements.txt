@@ -1,0 +1,17 @@
+# RAG Pepper MCP Server Dependencies
+# ==================================
+
+# MCP SDK
+mcp>=1.0.0
+
+# HTTP client for Dify API
+httpx>=0.25.0
+
+# Environment variables
+python-dotenv>=1.0.0
+
+# ASGI server (for HTTP mode)
+uvicorn>=0.24.0
+
+# Optional: for better async support
+anyio>=4.0.0
