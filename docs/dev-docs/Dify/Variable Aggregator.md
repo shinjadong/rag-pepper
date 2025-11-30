@@ -1,0 +1,78 @@
+---
+title: "Variable Aggregator"
+source: "https://docs.dify.ai/en/use-dify/nodes/variable-aggregator"
+author:
+  - "[[Dify Docs]]"
+published:
+created: 2025-11-30
+description: "Combine variables from different workflow branches into unified outputs"
+tags:
+  - "clippings"
+---
+The Variable Aggregator node combines variables from different execution paths into a single unified output. When multiple branches produce similar outputs, this node eliminates the need for duplicate downstream processing by creating one consistent variable reference.
+
+## The Branching Problem
+
+Conditional workflows create parallel execution paths where only one branch runs at a time. Without aggregation, you’d need duplicate downstream nodes for each possible branch outcome, creating complex and maintenance-heavy workflows.The Variable Aggregator acts as a merge point, collecting branch outputs into a single variable that downstream nodes can reference consistently, regardless of which branch actually executed.
+
+## Classification Workflow Example
+
+When user input is classified and each category requires different knowledge retrieval, the Variable Aggregator combines the results:**Without Aggregation** - Complex workflow requiring duplicate LLM nodes:
+
+![Issue Classification without Variable Aggregation](https://assets-docs.dify.ai/dify-enterprise-mintlify/en/guides/workflow/node/7a7c91663c3799ce9d056b013d5df29c.png)
+
+Issue Classification without Variable Aggregation
+
+Complex workflow without variable aggregation
+
+**With Aggregation** - Simplified workflow with single downstream processing:
+
+![Multi-Branch Aggregation after Issue Classification](https://assets-docs.dify.ai/dify-enterprise-mintlify/en/guides/workflow/node/2b1694936fdab4843f5edc3f2fd1e79a.png)
+
+Multi-Branch Aggregation after Issue Classification
+
+Simplified workflow using variable aggregation
+
+The aggregated workflow uses one LLM node instead of duplicating it for each classification branch, significantly reducing complexity while maintaining the same functionality.
+
+## Conditional Processing Example
+
+Similar benefits apply to If-Else branches that produce comparable outputs:
+
+![Multi-Branch Aggregation after Conditional Branching](https://assets-docs.dify.ai/dify-enterprise-mintlify/en/guides/workflow/node/ff0e5774a3eccc8a04c310ab9bae25e7.png)
+
+Multi-Branch Aggregation after Conditional Branching
+
+Variable aggregation after conditional branching
+
+## Configuration
+
+### Variable Selection
+
+Connect variables from different workflow branches that you want to combine. Each connected variable becomes a potential input to the aggregated output.
+
+### Type Constraints
+
+**Same Type Rule** - All aggregated variables must be the same data type. Once you connect the first variable (e.g., String), the node only accepts variables of the same type from other branches.**Supported Types:**
+- **String** - Text outputs from different processing branches
+- **Number** - Numeric calculations, scores, or measurements
+- **Object** - Structured data objects with similar schemas
+- **Array** - Lists, collections, or multiple results
+
+### Output Behavior
+
+The Variable Aggregator outputs the value from whichever branch actually executed. Since only one branch runs in conditional workflows, only one input variable will have a value during execution.
+
+## Advanced Features
+
+### Multiple Aggregation Groups
+
+Advanced workflows (v0.6.10+) can aggregate multiple groups of variables simultaneously. Each group maintains its own type constraint, allowing you to aggregate different data types in parallel within the same node.This is useful when branches produce multiple related outputs that need to be combined separately - for example, aggregating both text summaries and numeric scores from different processing paths.
+
+[Previous](https://docs.dify.ai/en/use-dify/nodes/template)[Document Extractor](https://docs.dify.ai/en/use-dify/nodes/doc-extractor)
+
+[
+
+Next
+
+](https://docs.dify.ai/en/use-dify/nodes/doc-extractor)
